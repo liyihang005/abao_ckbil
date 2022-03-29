@@ -70,6 +70,7 @@ def check_bills(account_bill_file, acc_bill_col,
             rec_j += 1
     # res = pd.DataFrame(res)
     # res.columns = ["error type", "error money"]
+    # 如果两边比较中出现某一边的索引溢出而另一边还没有比完的情况，需要把没有比完的那一边的数据拿到结果中
     if (acc_i < len(acc_bill)) or (rec_j < len(rec_bill)):
         try:
             if rec_bill[rec_j]:
