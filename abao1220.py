@@ -56,46 +56,75 @@ def check_bills(account_bill_file, acc_bill_col,
         if float(acc_bill[acc_i]) == float(rec_bill[rec_j]):
             acc_i += 1
             rec_j += 1
+            # ??? bug ???
+            # if (acc_i == len(acc_bill)) and rec_j < len(rec_bill):
+            #     if rec_bill[rec_j] > 0:
+            #         for jj in rec_bill[rec_j:]:
+            #             res.append(["record bill suspected error", jj])
+            #             if jj not in record_res_set:
+            #                 record_res_set.append(jj)
+            # elif (rec_j == len(rec_bill)) and acc_i < len(acc_bill):
+            #     if acc_bill[acc_i] > 0:
+            #         for jj in acc_bill[acc_i:]:
+            #             res.append(["account bill suspected error", jj])
+            #             if jj not in bank_res_set:
+            #                 bank_res_set.append(jj)
+
         elif float(acc_bill[acc_i]) > float(rec_bill[rec_j]):
             print("account bill suspected error:{}".format(acc_bill[acc_i]))
             res.append(["account bill suspected error", acc_bill[acc_i]])
             if acc_bill[acc_i] not in bank_res_set:
                 bank_res_set.append(acc_bill[acc_i])
             acc_i += 1
+            # if (acc_i == len(acc_bill)) and rec_j < len(rec_bill):
+            #     if rec_bill[rec_j] > 0:
+            #         for jj in rec_bill[rec_j:]:
+            #             res.append(["record bill suspected error", jj])
+            #             if jj not in record_res_set:
+            #                 record_res_set.append(jj)
+
         elif float(acc_bill[acc_i]) < float(rec_bill[rec_j]):
             print("record bill suspected error:{}".format(rec_bill[rec_j]))
             res.append(["record bill suspected error", rec_bill[rec_j]])
             if rec_bill[rec_j] not in record_res_set:
                 record_res_set.append(rec_bill[rec_j])
             rec_j += 1
+            # if (rec_j == len(rec_bill)) and acc_i < len(acc_bill):
+            #     if acc_bill[acc_i] > 0:
+            #         for jj in acc_bill[acc_i:]:
+            #             res.append(["account bill suspected error", jj])
+            #             if jj not in bank_res_set:
+            #                 bank_res_set.append(jj)
+
+    if (acc_i == len(acc_bill)) and rec_j < len(rec_bill):
+        if rec_bill[rec_j] > 0:
+            for jj in rec_bill[rec_j:]:
+                res.append(["record bill suspected error", jj])
+                if jj not in record_res_set:
+                    record_res_set.append(jj)
+    elif (rec_j == len(rec_bill)) and acc_i < len(acc_bill):
+        if acc_bill[acc_i] > 0:
+            for jj in acc_bill[acc_i:]:
+                res.append(["account bill suspected error", jj])
+                if jj not in bank_res_set:
+                    bank_res_set.append(jj)
+
     # res = pd.DataFrame(res)
     # res.columns = ["error type", "error money"]
-    # 如果两边比较中出现某一边的索引溢出而另一边还没有比完的情况，需要把没有比完的那一边的数据拿到结果中
-    if (acc_i < len(acc_bill)) or (rec_j < len(rec_bill)):
-        try:
-            if rec_bill[rec_j]:
-                res += rec_bill[rec_j:]
-                for rec_over in rec_bill[rec_j:]:
-                    if rec_over not in record_res_set:
-                        record_res_set.append(rec_over)
-            
-        except:
-            if acc_bill[acc_i]:
-                res += acc_bill[acc_i:]
-                for acc_over in acc_bill[acc_i:]:
-                    if acc_over not in bank_res_set:
-                        bank_res_set.append(acc_over)
-    
     bank_df = read_all_data(account_bill_file, acc_bill_col)
     record_df = read_all_data(record_bill_file, rec_bill_col)
     res_b = bank_df[bank_df[acc_bill_col] == bank_res_set[0]]
     res_r = record_df[record_df[rec_bill_col] == record_res_set[0]]
     for i in bank_res_set[1:]:
         res_b = res_b.append(bank_df[bank_df[acc_bill_col] == i])
+    for i in record_res_set:
+        res_b = res_b.append(bank_df[bank_df[acc_bill_col] == i])
     # res_b = pd.DataFrame(res_b)
     res_b.to_excel(os.path.dirname(account_bill_file) + r"\{}_yinhangliushui_suspect_error.xls".format(file_flag))
 
     for i in record_res_set[1:]:
+        res_r = res_r.append(record_df[record_df[rec_bill_col] == i])
+    for i in bank_res_set:
         res_r = res_r.append(record_df[record_df[rec_bill_col] == i])
     # res_r = pd.DataFrame(res_r)
     res_r.to_excel(os.path.dirname(account_bill_file) + r"\{}_sanlianzhang_suspect_error.xls".format(file_flag))
